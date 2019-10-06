@@ -1,0 +1,25 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.mirk.gyverlamp.MainActivity">
+    <item
+        android:id="@+id/action_alarm"
+        android:orderInCategory="100"
+        android:title="Будильник"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_sleep"
+        android:orderInCategory="100"
+        android:title="Автовыключение"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_lamp_setup"
+        android:orderInCategory="100"
+        android:title="Настройки"
+        app:showAsAction="never" />
+
+
+
+</menu>
