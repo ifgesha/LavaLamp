@@ -1,34 +1,55 @@
 package com.mirk.gyverlamp;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.drawable.ColorDrawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import android.os.Message;
+import android.provider.Settings;
 import android.util.Log;
-import android.view.View;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Toast;
+
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+
+import static java.lang.Integer.parseInt;
 
 
-public class MainActivity extends AppCompatActivity  implements AppCallback{
+public class MainActivity extends AppCompatActivity {
 
 
     public boolean connectTitle = false;
-    public boolean powerOn = false;
+    public int power = 0;
+    public int mode = 1;
+    public int brightness = 50;
+    public int speed = 1;
+    public int scale = 1;
 
-    private int SoTimeout = 10000;
-    private int responseSize = 80000;
 
+    public InetAddress lampIp = null;
+    public int lampPort = 0;
+    public int soccetTimeout = 3000;
+    public int responseSize = 8000;
 
     ImageButton imageButton;
 
-    UDP_Client udpClient;
 
+
+    private SharedPreferences lampSettings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,45 +59,93 @@ public class MainActivity extends AppCompatActivity  implements AppCallback{
         setSupportActionBar(toolbar);
 
 
+        // Получить ip адрес и порт
+        lampSettings = getSharedPreferences("Settings", Context.MODE_PRIVATE);
+        try {
+            lampIp = InetAddress.getByName(lampSettings.getString("lampIp", null));
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        lampPort = lampSettings.getInt("lampPort", 0);
+        Log.i("lampSettings", "ip="+ lampIp.toString() + " port="+lampPort);
 
 
-        udpClient = new UDP_Client(this);
-        udpClient.setIpPort("192.168.0.104", 8888);
 
-        // Получим текущее состояние
-        udpClient.sendCommand("GET", true);
-        new Thread(udpClient).start();
+         // Проверить сокдинение с лампой при запуске приложения
+        new TaskUDP().execute("GET", "need_response");
 
 
+       // Toast.makeText(this,"Не настроен IP / порт", Toast.LENGTH_LONG).show();
 
-        // Включение лампы
+        // Включение/Включение лампы
         imageButton = findViewById(R.id.buttonPower);
-
         imageButton.setOnClickListener(new View.OnClickListener()
         {
             public void onClick(View v)
             {
 
                 Log.i("lamp", "Click ");
-
                 // меняем изображение на кнопке 
-                if (powerOn){
-                    imageButton.setColorFilter( getResources().getColor(R.color.colorNoConnect));
-                    udpClient.sendCommand("P_OFF");
-                    new Thread(udpClient).start();
+                if (power == 1){
+                    new TaskUDP().execute("P_OFF", "need_response");
                 } else {
-                    imageButton.setColorFilter(getResources().getColor(R.color.colorPowerOn));
-                    udpClient.sendCommand("P_ON");
-                    new Thread(udpClient).start();
+                    new TaskUDP().execute("P_ON", "need_response");
                 }
-                powerOn = !powerOn;
+
             }
         });
 
 
+
     }
 
+    // Обновить интерфейс
+    public void updateUI(String str){
 
+        // Не настроен коннект
+        if("noIpPort".contains(str)){
+            Toast.makeText(this,"Не настроен IP / порт", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+
+        // Нет подключения
+        if(str == null){
+            setTitle(getString(R.string.app_name) + " - " + getString(R.string.connect_no));
+            getSupportActionBar().setBackgroundDrawable(
+                    new ColorDrawable(getResources().getColor(R.color.colorNoConnect))
+            );
+            imageButton.setColorFilter( getResources().getColor(R.color.colorNoConnect));
+            return;
+        }
+
+        // Есть подключение
+        setTitle(getString(R.string.app_name) + " - " + getString(R.string.connect_ok) );
+        getSupportActionBar().setBackgroundDrawable(
+                new ColorDrawable( getResources().getColor(R.color.colorPowerOn) )
+        );
+
+        // Парсим ответ
+        String[] resp = str.split("\\s+");   //CURR 1 102 29 5 1
+
+        // Текущее состояние
+        if("CURR".contains(resp[0])) {
+            mode = parseInt(resp[1]);
+            brightness = parseInt(resp[2]);
+            speed = parseInt(resp[3]);
+            scale = parseInt(resp[4]);
+            power = parseInt(resp[5]);
+
+            // Обновить UI
+            if (power == 1){
+                imageButton.setColorFilter(getResources().getColor(R.color.colorPowerOn));
+            } else {
+                imageButton.setColorFilter( getResources().getColor(R.color.colorNoConnect));
+            }
+
+        }
+
+    }
 
 
     @Override
@@ -86,69 +155,96 @@ public class MainActivity extends AppCompatActivity  implements AppCallback{
         return true;
     }
 
+    // Мен. ...
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+
         int id = item.getItemId();
-
-        udpClient.sendCommand("GET", true);
-        new Thread(udpClient).start();
+        Intent intent = new Intent();
 
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_sleep) {
-            showSleepActivity();
-            return true;
+             intent = new Intent(this, SleepActivity.class);
         }
 
-        return super.onOptionsItemSelected(item);
-    }
+        if (id == R.id.action_lamp_setup) {
+            intent = new Intent(this, IpPortActivity.class);
+        }
 
-  
-    
-    // Проверим зарегистрировано ли приложение
-    // Показать активити регистрации
-    public void showSleepActivity(){
-        Intent intent = new Intent(this, SleepActivity.class);
+        if (id == R.id.action_alarm) {
+            intent = new Intent(this, AlarmActivity.class);
+        }
+
         startActivity(intent);
+
+        return true;
+
     }
 
 
-    @Override
-    public void dataHandler(String str) {
-        Log.i("dataHandler", str);
 
-        // Есть подключение
-        if(str != null){
 
-            if(!connectTitle){
-                connectTitle = true;
-                setTitle(getString(R.string.app_name) + " - " + getString(R.string.connect_ok) );
-                getSupportActionBar().setBackgroundDrawable(
-                        new ColorDrawable( getResources().getColor(R.color.colorPowerOn) )
-                );
+
+    class TaskUDP extends AsyncTask<String, String, String> {
+
+        boolean need_response = false;
+
+        @Override
+        protected String doInBackground(String... params) {
+
+            if(lampIp.isLoopbackAddress() || lampPort < 1){
+                need_response = true;
+                return "noIpPort";
             }
 
+            Log.d("UDP client", "doInBackground" );
+            String responce = null;
+            try {
+                // Отправка UDP запроса
+                DatagramSocket udpSocket = new DatagramSocket(lampPort);
+                byte[] buf = params[0].getBytes();
+                DatagramPacket sp = new DatagramPacket(buf, buf.length, lampIp, lampPort);
+                udpSocket.send(sp);
+                Log.i("UDP client", "send:" +params[0] );
 
-        // Нет подключения
-        }else{
+                // Получение UDP ответа от лампы если нужно
+                if("need_response".contains(params[1])) {
+                    need_response = true;
+                    try {
 
-            if(connectTitle){
-                connectTitle = false;
-                setTitle(getString(R.string.app_name) + " - " + getString(R.string.connect_no) );
-                getSupportActionBar().setBackgroundDrawable(
-                        new ColorDrawable( getResources().getColor(R.color.colorNoConnect) )
-                );
+                        byte[] message = new byte[responseSize];
+                        DatagramPacket rp = new DatagramPacket(message, message.length);
+
+                        Log.d("UDP client", "about to wait to receive");
+                        udpSocket.setSoTimeout(soccetTimeout);
+
+                        udpSocket.receive(rp);
+                        responce = new String(message, 0, rp.getLength());
+                        Log.i("UDP client", "Received text: " + responce);
+
+                    } catch (IOException e) {
+                        Log.e("UDP client", "IOException", e);
+                    }
+                }
+                udpSocket.close();
+
+            } catch (SocketException e) {
+                Log.e("SocketOpen", "Error:", e);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
+            return responce;
         }
 
-
+        @Override
+        protected void onPostExecute(String responce) {
+            if(need_response)
+                updateUI(responce);
+        }
     }
-
-
 
 
 

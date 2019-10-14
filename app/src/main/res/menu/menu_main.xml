@@ -5,19 +5,19 @@
     <item
         android:id="@+id/action_alarm"
         android:orderInCategory="100"
-        android:title="Будильник"
+        android:title="@string/alarm"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_sleep"
         android:orderInCategory="100"
-        android:title="Автовыключение"
+        android:title="@string/sleep"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_lamp_setup"
         android:orderInCategory="100"
-        android:title="Настройки"
+        android:title="@string/setup"
         app:showAsAction="never" />
 
 

@@ -24,13 +24,23 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".SleepActivity"
+            android:label="@string/sleep"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".IpPortActivity"
+            android:label="@string/setup"
+            android:screenOrientation="portrait" />
 
-        <activity android:name=".SleepActivity"
-            android:label="@string/app_name"
-            android:screenOrientation="portrait"
-            >
+
+        <activity
+            android:name=".AlarmActivity"
+            android:label="@string/alarm"
+            android:screenOrientation="portrait" >
+
+
         </activity>
-
 
 
     </application>
