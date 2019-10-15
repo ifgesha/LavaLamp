@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
 
-        // Получить ip адрес и порт
+        // Получить ipView адрес и порт
         lampSettings = getSharedPreferences("Settings", Context.MODE_PRIVATE);
         try {
             lampIp = InetAddress.getByName(lampSettings.getString("lampIp", null));
@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         lampPort = lampSettings.getInt("lampPort", 0);
-        Log.i("lampSettings", "ip="+ lampIp.toString() + " port="+lampPort);
+        Log.i("lampSettings", "ipView="+ lampIp.toString() + " portView="+lampPort);
 
 
 
