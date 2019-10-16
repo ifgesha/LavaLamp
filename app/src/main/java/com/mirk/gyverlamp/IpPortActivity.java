@@ -2,23 +2,23 @@ package com.mirk.gyverlamp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 import static java.lang.Integer.parseInt;
 
 public class IpPortActivity extends AppCompatActivity {
 
-
-    private SharedPreferences lampSettings;
+    public static final String PREF = "lampPrefs";
+    private SharedPreferences sharedPreferences;
     private InetAddress lampIp = null;
     private int lampPort = 0;
 
@@ -33,37 +33,44 @@ public class IpPortActivity extends AppCompatActivity {
 
 
         ipView = findViewById(R.id.editTextIp);
-        portView = findViewById(R.id.editTextIp);
+        portView = findViewById(R.id.editTextPort);
 
         // Получить ipView адрес и порт
-        lampSettings = getSharedPreferences("Settings", Context.MODE_PRIVATE);
-        ipView.setText(lampSettings.getString("lampIp", ""));
-        portView.setText(lampSettings.getString("lampPort", ""));
+        sharedPreferences = getSharedPreferences(PREF, MODE_PRIVATE);
+        ipView.setText(sharedPreferences.getString("lampIp", ""));
+        portView.setText(sharedPreferences.getString("lampPort", ""));
 
         final Button button = (Button) findViewById(R.id.buttonSaveIpPort);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
                 if(validIP(ipView.getText().toString())){
-                    lampSettings.edit().putString("ip", ipView.getText().toString());
+                    sharedPreferences.edit().putString("lampIp", ipView.getText().toString()).commit();
                 }else{
-                    Toast.makeText(getApplication(),R.string.not_valid_ip, Toast.LENGTH_LONG).show();
+                    Toast toast = Toast.makeText(getApplication(),R.string.not_valid_ip, Toast.LENGTH_SHORT);
+                    toast.setGravity(Gravity.CENTER, 0, 0);
+                    toast.show();
+                    return;
                 }
 
-
-
-                int port = 0;
+                Integer port = 0;
                 try {
                     port = parseInt(portView.getText().toString());
-                } finally {
-                    if(port > 1 && port < 65535){
-                        lampSettings.edit().putInt("port", port);
-                    }else{
-                        Toast.makeText(getApplication(),R.string.not_valid_port, Toast.LENGTH_LONG).show();
-                    }
+                } catch (Exception e){
+                    Log.e("parce", e.getMessage());
+
                 }
 
+                if(port > 1 && port < 65535){
+                    sharedPreferences.edit().putString("lampPort", port.toString()).commit();
+                }else{
+                    Toast toast = Toast.makeText(getApplication(),R.string.not_valid_port, Toast.LENGTH_SHORT);
+                    toast.setGravity(Gravity.CENTER, 0, 0);
+                    toast.show();
+                    return;
+                }
 
+                finish();
 
             }
         });
@@ -71,7 +78,6 @@ public class IpPortActivity extends AppCompatActivity {
 
 
     }
-
 
 
     public static boolean validIP (String ip) {

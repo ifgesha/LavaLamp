@@ -1,6 +1,5 @@
 package com.mirk.gyverlamp;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.drawable.ColorDrawable;
@@ -10,7 +9,6 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import android.provider.Settings;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -48,8 +46,8 @@ public class MainActivity extends AppCompatActivity {
     ImageButton imageButton;
 
 
-
-    private SharedPreferences lampSettings;
+    public static final String PREF = "lampPrefs";
+    private SharedPreferences sharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,16 +57,8 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
 
-        // Получить ipView адрес и порт
-        lampSettings = getSharedPreferences("Settings", Context.MODE_PRIVATE);
-        try {
-            lampIp = InetAddress.getByName(lampSettings.getString("lampIp", null));
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-        lampPort = lampSettings.getInt("lampPort", 0);
-        Log.i("lampSettings", "ipView="+ lampIp.toString() + " portView="+lampPort);
-
+       // Получить настройки
+        getPreferences();
 
 
          // Проверить сокдинение с лампой при запуске приложения
@@ -99,18 +89,54 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        updateUI("no_response");
+
+        // Получить настройки
+        getPreferences();
+
+        // Проверить сокдинение с лампой при возврате к активити
+        new TaskUDP().execute("GET", "need_response");
+
+    }
+
+
+    private void getPreferences(){
+
+        // Получить ipView адрес и порт
+        sharedPreferences = getSharedPreferences(PREF, MODE_PRIVATE);
+        try {
+            lampIp = InetAddress.getByName(sharedPreferences.getString("lampIp", null));
+            lampPort = parseInt(sharedPreferences.getString("lampPort", null));
+        } catch (Exception e) {
+            Log.i("getPreferences", "No IP or port ", e);
+        }
+
+        Log.i("sharedPreferences", "ipView="+ lampIp.toString() + " portView="+lampPort);
+
+    }
+
+
+
     // Обновить интерфейс
     public void updateUI(String str){
 
         // Не настроен коннект
-        if("noIpPort".contains(str)){
-            Toast.makeText(this,"Не настроен IP / порт", Toast.LENGTH_LONG).show();
+        if(str.contains("noIpPort")){
+            Toast toast = Toast.makeText(getApplication(),R.string.not_setup, Toast.LENGTH_SHORT);
+            toast.setGravity(Gravity.CENTER, 0, 0);
+            toast.show();
             return;
         }
 
 
         // Нет подключения
-        if(str == null){
+        if(str.contains("no_response")){
             setTitle(getString(R.string.app_name) + " - " + getString(R.string.connect_no));
             getSupportActionBar().setBackgroundDrawable(
                     new ColorDrawable(getResources().getColor(R.color.colorNoConnect))
@@ -198,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             Log.d("UDP client", "doInBackground" );
-            String responce = null;
+            String responce = "no_response";
             try {
                 // Отправка UDP запроса
                 DatagramSocket udpSocket = new DatagramSocket(lampPort);
