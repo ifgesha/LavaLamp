@@ -94,7 +94,8 @@
                 android:text="Яркость" />
 
             <SeekBar
-                android:id="@+id/seekBar"
+                android:max="255"
+                android:id="@+id/seekBarBrightness"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent" />
 
@@ -112,7 +113,8 @@
                 android:text="Скорость" />
 
             <SeekBar
-                android:id="@+id/seekBar5"
+                android:max="255"
+                android:id="@+id/seekBarSpeed"
                 android:layout_height="match_parent" />
         </TableRow>
 
@@ -128,7 +130,8 @@
                 android:text="Эффект" />
 
             <SeekBar
-                android:id="@+id/seekBar6"
+                android:max="100"
+                android:id="@+id/seekBarMode"
                 android:layout_height="wrap_content" />
         </TableRow>
 

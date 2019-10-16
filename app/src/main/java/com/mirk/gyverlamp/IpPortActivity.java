@@ -61,7 +61,7 @@ public class IpPortActivity extends AppCompatActivity {
 
                 }
 
-                if(port > 1 && port < 65535){
+                if(port > 0 && port < 65535){
                     sharedPreferences.edit().putString("lampPort", port.toString()).commit();
                 }else{
                     Toast toast = Toast.makeText(getApplication(),R.string.not_valid_port, Toast.LENGTH_SHORT);

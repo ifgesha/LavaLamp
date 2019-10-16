@@ -15,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -27,7 +28,7 @@ import java.net.UnknownHostException;
 import static java.lang.Integer.parseInt;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBarChangeListener{
 
 
     public boolean connectTitle = false;
@@ -44,7 +45,9 @@ public class MainActivity extends AppCompatActivity {
     public int responseSize = 8000;
 
     ImageButton imageButton;
-
+    SeekBar seekBarBrightness;
+    SeekBar seekBarMode;
+    SeekBar seekBarSpeed;
 
     public static final String PREF = "lampPrefs";
     private SharedPreferences sharedPreferences;
@@ -85,9 +88,45 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        // Ползунки
 
+        seekBarBrightness = ((SeekBar)findViewById(R.id.seekBarBrightness));
+        seekBarBrightness.setOnSeekBarChangeListener(this);
+
+        seekBarMode = (SeekBar)findViewById(R.id.seekBarMode);
+        seekBarMode.setOnSeekBarChangeListener(this);
+
+        seekBarSpeed = (SeekBar)findViewById(R.id.seekBarSpeed);
+        seekBarSpeed.setOnSeekBarChangeListener(this);
 
     }
+
+
+
+
+
+
+
+
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        switch (seekBar.getId()) {
+            case R.id.seekBarBrightness: new TaskUDP().execute("BRI"+progress, "send");  break;
+            case R.id.seekBarSpeed:      new TaskUDP().execute("SPD"+progress, "send");  break;
+            case R.id.seekBarMode:       new TaskUDP().execute("SCA"+progress, "send");  break;
+        }
+
+    }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+    }
+
+
 
 
 
@@ -168,6 +207,12 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 imageButton.setColorFilter( getResources().getColor(R.color.colorNoConnect));
             }
+
+
+            seekBarBrightness.setProgress(brightness);
+            seekBarSpeed.setProgress(speed);
+            seekBarMode.setProgress(scale);
+
 
         }
 
