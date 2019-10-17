@@ -14,8 +14,10 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -45,9 +47,11 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     public int responseSize = 8000;
 
     ImageButton imageButton;
+    Spinner spinner;
     SeekBar seekBarBrightness;
     SeekBar seekBarMode;
     SeekBar seekBarSpeed;
+
 
     public static final String PREF = "lampPrefs";
     private SharedPreferences sharedPreferences;
@@ -59,75 +63,53 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        imageButton = findViewById(R.id.buttonPower);
+        spinner = (Spinner)findViewById(R.id.spinner);
+        seekBarBrightness = ((SeekBar)findViewById(R.id.seekBarBrightness));
+        seekBarMode = (SeekBar)findViewById(R.id.seekBarMode);
+        seekBarSpeed = (SeekBar)findViewById(R.id.seekBarSpeed);
 
        // Получить настройки
         getPreferences();
 
-
-         // Проверить сокдинение с лампой при запуске приложения
+        // Проверить сокдинение с лампой при запуске приложения
         new TaskUDP().execute("GET", "need_response");
 
 
-       // Toast.makeText(this,"Не настроен IP / порт", Toast.LENGTH_LONG).show();
-
         // Включение/Включение лампы
-        imageButton = findViewById(R.id.buttonPower);
         imageButton.setOnClickListener(new View.OnClickListener()
         {
             public void onClick(View v)
             {
-
-                Log.i("lamp", "Click ");
-                // меняем изображение на кнопке 
-                if (power == 1){
-                    new TaskUDP().execute("P_OFF", "need_response");
-                } else {
-                    new TaskUDP().execute("P_ON", "need_response");
-                }
-
+            Log.i("lamp", "Click ");
+            // меняем изображение на кнопке
+            if (power == 1){
+                new TaskUDP().execute("P_OFF", "need_response");
+            } else {
+                new TaskUDP().execute("P_ON", "need_response");
+            }
             }
         });
 
+        // Режим
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                Log.i("spinner", "position = " + position );
+                new TaskUDP().execute("EFF" + position, "need_response");
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {}
+
+        });
+
+
         // Ползунки
-
-        seekBarBrightness = ((SeekBar)findViewById(R.id.seekBarBrightness));
         seekBarBrightness.setOnSeekBarChangeListener(this);
-
-        seekBarMode = (SeekBar)findViewById(R.id.seekBarMode);
         seekBarMode.setOnSeekBarChangeListener(this);
-
-        seekBarSpeed = (SeekBar)findViewById(R.id.seekBarSpeed);
         seekBarSpeed.setOnSeekBarChangeListener(this);
 
     }
-
-
-
-
-
-
-
-
-    @Override
-    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-        switch (seekBar.getId()) {
-            case R.id.seekBarBrightness: new TaskUDP().execute("BRI"+progress, "send");  break;
-            case R.id.seekBarSpeed:      new TaskUDP().execute("SPD"+progress, "send");  break;
-            case R.id.seekBarMode:       new TaskUDP().execute("SCA"+progress, "send");  break;
-        }
-
-    }
-
-    @Override
-    public void onStartTrackingTouch(SeekBar seekBar) {
-    }
-
-    @Override
-    public void onStopTrackingTouch(SeekBar seekBar) {
-    }
-
-
-
 
 
 
@@ -143,6 +125,24 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         new TaskUDP().execute("GET", "need_response");
 
     }
+
+
+
+
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        switch (seekBar.getId()) {
+            case R.id.seekBarBrightness: new TaskUDP().execute("BRI"+progress, "send");  break;
+            case R.id.seekBarSpeed:      new TaskUDP().execute("SPD"+progress, "send");  break;
+            case R.id.seekBarMode:       new TaskUDP().execute("SCA"+progress, "send");  break;
+        }
+
+    }
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {    }
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {    }
+
 
 
     private void getPreferences(){
@@ -208,6 +208,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 imageButton.setColorFilter( getResources().getColor(R.color.colorNoConnect));
             }
 
+            spinner.setSelection(mode);
 
             seekBarBrightness.setProgress(brightness);
             seekBarSpeed.setProgress(speed);
@@ -251,8 +252,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         return true;
 
     }
-
-
 
 
 
@@ -316,7 +315,6 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 updateUI(responce);
         }
     }
-
 
 
 }

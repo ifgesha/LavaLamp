@@ -11,27 +11,28 @@
     <string name="not_setup">\n\nНе настроен IP / порт\n\n</string>
 
     <string-array name="array_name">
-       <item name="0">sparklesRoutine</item>
-       <item name="1">fireRoutine</item>
-       <item name="2">rainbowVertical</item>
-       <item name="3">rainbowHorizontal</item>
-       <item name="4">colorsRoutine</item>
-       <item name="5">madnessNoise</item>
-       <item name="6">cloudNoise</item>
-       <item name="7">lavaNoise</item>
-       <item name="8">plasmaNoise</item>
-       <item name="9">rainbowNoise</item>
-       <item name="10"> rainbowStripeNoise</item>
-       <item name="11"> zebraNoise</item>
-       <item name="12"> forestNoise</item>
-       <item name="13"> oceanNoise</item>
-       <item name="14"> colorRoutine</item>
-       <item name="15"> snowRoutine</item>
-       <item name="16"> matrixRoutine</item>
-       <item name="17"> lightersRoutine</item>
-
-
+        <item>Конфети</item>
+        <item>Огонь</item>
+        <item>Радуга вертикальная</item>
+        <item>Радуга горизонтальная</item>
+        <item>Смена цвета</item>
+        <item>Безумие</item>
+        <item>Облока</item>
+        <item>Лава</item>
+        <item>Плазма</item>
+        <item>Радуга</item>
+        <item>Павлин</item>
+        <item>Зебра</item>
+        <item>Лес</item>
+        <item>Океан</item>
+        <item>Постоянный цвет</item>
+        <item>Снег</item>
+        <item>Матрица</item>
+        <item>Светлячки</item>
     </string-array>
+
+
+
 
 </resources>
 
