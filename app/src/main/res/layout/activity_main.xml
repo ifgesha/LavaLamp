@@ -43,15 +43,44 @@
         android:layout_height="121dp"
         android:layout_marginTop="36dp"
         android:background="@null"
-        android:tint="@color/colorNoConnect"
+        android:contentDescription="@string/power"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_power_button_svgrepo_com"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:tint="@color/colorNoConnect"
+        app:layout_constraintEnd_toStartOf="@+id/sleepLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/appBarLayout"
         tools:srcCompat="@drawable/ic_power_button_svgrepo_com" />
 
+    <LinearLayout
+        android:id="@+id/sleepLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="124dp"
+        android:orientation="vertical"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/buttonPower"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|center_horizontal"
+            android:text="@string/sleep_txt" />
+
+        <TextView
+            android:id="@+id/sleepCounter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center|center_horizontal"
+            android:text="@string/time00_00"
+            android:textSize="24sp" />
+    </LinearLayout>
+
     <TableLayout
+        android:id="@+id/tableLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
@@ -94,10 +123,10 @@
                 android:text="Яркость" />
 
             <SeekBar
-                android:max="255"
                 android:id="@+id/seekBarBrightness"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                android:max="255" />
 
         </TableRow>
 
@@ -113,9 +142,9 @@
                 android:text="Скорость" />
 
             <SeekBar
-                android:max="255"
                 android:id="@+id/seekBarSpeed"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                android:max="255" />
         </TableRow>
 
         <TableRow
@@ -130,9 +159,9 @@
                 android:text="Эффект" />
 
             <SeekBar
-                android:max="100"
                 android:id="@+id/seekBarMode"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:max="100" />
         </TableRow>
 
     </TableLayout>

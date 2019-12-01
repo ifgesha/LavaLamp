@@ -2,17 +2,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.mirk.gyverlamp.MainActivity">
-    <item
-        android:id="@+id/action_alarm"
-        android:orderInCategory="100"
-        android:title="@string/alarm"
-        app:showAsAction="never" />
 
     <item
         android:id="@+id/action_sleep"
         android:orderInCategory="100"
         android:title="@string/sleep"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_alarm"
+        android:orderInCategory="100"
+        android:title="@string/alarm"
+        app:showAsAction="never" />
+
 
     <item
         android:id="@+id/action_lamp_setup"

@@ -9,6 +9,8 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.os.CountDownTimer;
+import android.text.Layout;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -18,6 +20,8 @@ import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.Spinner;
+import android.widget.TableRow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -39,18 +43,27 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
     public int brightness = 50;
     public int speed = 1;
     public int scale = 1;
+    public long sleep = 0;
 
 
-    public InetAddress lampIp = null;
-    public int lampPort = 0;
-    public int soccetTimeout = 3000;
-    public int responseSize = 8000;
+    public  InetAddress lampIp = null;
+    public  int lampPort = 0;
+    public  int soccetTimeout = 3000;
+    public  int responseSize = 8000;
+
+
+    public CountDownTimer sleepTimer;
 
     ImageButton imageButton;
     Spinner spinner;
     SeekBar seekBarBrightness;
     SeekBar seekBarMode;
     SeekBar seekBarSpeed;
+    View sleepLayout;
+    TextView sleepCounter;
+
+
+
 
 
     public static final String PREF = "lampPrefs";
@@ -68,6 +81,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         seekBarBrightness = ((SeekBar)findViewById(R.id.seekBarBrightness));
         seekBarMode = (SeekBar)findViewById(R.id.seekBarMode);
         seekBarSpeed = (SeekBar)findViewById(R.id.seekBarSpeed);
+        sleepLayout = (View)findViewById(R.id.sleepLayout);
+        sleepCounter = (TextView)findViewById(R.id.sleepCounter);
 
        // Получить настройки
         getPreferences();
@@ -124,6 +139,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         // Проверить сокдинение с лампой при возврате к активити
         new TaskUDP().execute("GET", "need_response");
 
+
+
     }
 
 
@@ -136,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             case R.id.seekBarSpeed:      new TaskUDP().execute("SPD"+progress, "send");  break;
             case R.id.seekBarMode:       new TaskUDP().execute("SCA"+progress, "send");  break;
         }
-
+        //new TaskUDP().execute("SLEEP_GET", "need_response");
     }
     @Override
     public void onStartTrackingTouch(SeekBar seekBar) {    }
@@ -201,6 +218,22 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             scale = parseInt(resp[4]);
             power = parseInt(resp[5]);
 
+            if(resp[6] != null){
+                sleep =  Long.parseLong(resp[6]);
+                if(sleep != 0 ){
+                    sleepTimer = startSleepTimer(sleep);
+                    sleepLayout.setVisibility(View.VISIBLE);
+                    Log.i("sleepTimer", "Start " + sleep);
+                }else{
+                    sleepLayout.setVisibility(View.GONE);
+                    if (sleepTimer != null) {
+                        sleepTimer.cancel();
+                        Log.i("sleepTimer", "STOP " );
+                    }
+                }
+            }
+
+
             // Обновить UI
             if (power == 1){
                 imageButton.setColorFilter(getResources().getColor(R.color.colorPowerOn));
@@ -213,9 +246,9 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
             seekBarBrightness.setProgress(brightness);
             seekBarSpeed.setProgress(speed);
             seekBarMode.setProgress(scale);
-
-
         }
+
+
 
     }
 
@@ -237,6 +270,8 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
 
         if (id == R.id.action_sleep) {
              intent = new Intent(this, SleepActivity.class);
+             startActivityForResult(intent, 1);
+             return true;
         }
 
         if (id == R.id.action_lamp_setup) {
@@ -251,6 +286,16 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
 
         return true;
 
+    }
+
+
+    // Активировать таймер  sleep
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (data == null) {return;}
+        String t  = data.getStringExtra("timer");
+        new TaskUDP().execute("P_ON", "need_response");
+        new TaskUDP().execute("SLEEP_SET"+t, "need_response");
     }
 
 
@@ -315,6 +360,31 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
                 updateUI(responce);
         }
     }
+
+
+
+    public CountDownTimer startSleepTimer(long mf ) {
+
+        if (sleepTimer != null) {
+            sleepTimer.cancel();
+        }
+
+        return new CountDownTimer(mf, 1000) {
+
+            public void onTick(long millisUntilFinished) {
+                int s = (int) (millisUntilFinished / 1000);
+                int m = s / 60;
+                s = s % 60;
+                sleepCounter.setText(String.format("%02d:%02d", m, s));
+            }
+
+            public void onFinish() {
+                sleepLayout.setVisibility(View.GONE);
+                imageButton.setColorFilter( getResources().getColor(R.color.colorNoConnect));
+            }
+        }.start();
+    }
+
 
 
 }
